@@ -1,0 +1,44 @@
+name: PR feedback comment
+on:
+  pull_request:
+    paths:
+      - recipes/**
+    branches:
+      - master
+      - develop
+jobs:
+  pr-feedback:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Install system dependencies #@TODO hg
+        run: sudo apt-get install -y git
+      - name: Install Emacs
+        uses: purcell/setup-emacs@master
+        with:
+          version: 29.3
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Run tests
+        id: feedback
+        run: PULLREQUEST='${{ toJSON(github.event.number) }}' emacs --batch -L . -l init.el
+      - name: Inspection
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log(context)
+            console.log(context.payload)
+      - name: Post feedback
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let fs = require("fs");
+            let text = fs.readFileSync("./feedback.txt", "utf-8");
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: text
+            })
