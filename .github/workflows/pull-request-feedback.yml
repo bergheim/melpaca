@@ -23,12 +23,6 @@ jobs:
       - name: Run tests
         id: feedback
         run: PULLREQUEST='${{ toJSON(github.event.number) }}' emacs --batch -L . -l init.el
-      - name: Inspection
-        uses: actions/github-script@v7
-        with:
-          script: |
-            console.log(context)
-            console.log(context.payload)
       - name: Post feedback
         uses: actions/github-script@v7
         with:
